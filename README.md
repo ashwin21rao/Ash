@@ -17,7 +17,7 @@ This is an implementation of a Linux shell written in C.
 
 ### Built-in commands
 
-These are shell builtins.
+These are shell builtins. All other commands are treated as external commands.  
 
 1. `pwd`
     
@@ -150,4 +150,4 @@ These are shell builtins.
 
 - Function declarations are present in `.h` files and definitions in the corresponding `.c` files.  
 - All included header files and macro definitions are present in `headers.h` and all global variables in `globalvars.h`.  
-- SHELL_EXECUTABLE contains a working executable of the shell, created using the same steps as described above.  
+- `SHELL_EXECUTABLE` contains a working executable of the shell, created using the same steps as described above.  
