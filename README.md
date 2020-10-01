@@ -1,98 +1,153 @@
-COMPILING AND RUNNING THE SHELL
+# Linux Shell in C
 
-1) Use the command "make" to execute the makefile. This creates an executable called "shell" in the same directory.
-2) Run ./shell to execute the shell.
+## Introduction
 
-FILES AND THEIR OVERVIEW
-
-1) shell.c
-	This contains the main function of the program.
-
-2) headers.h
-	Contains all required header files and macro definitions.
-
-3) globalvars.h
-	This contains all global variables.
-
-4) prompt.h and prompt.c
-	Conatins the infinite shell loop for inputting commands and displaying prompt.
-
-5) getcommands.h and getcommands.c
-	Used to input the command. Handles logical chaining of commands with AND (&&) and OR (||). Calls interpretcommands.c for interpretation.
-
-6) syntax.h and syntax.c
-	Checks for syntax errors in the input.
-
-7) interpretcommands.h and interpretcommands.c
-	Handles piping. Interprets the command and performs the required action on it.
-
-8) redirection.h and redirection.c
-	Handles I/O redirection.
-
-9) pwd.h and pwd.c
-	Resets the present working directory.
-
-10) echo.h and echo.c
-	Implementation of echo command (shell builtin).
-
-11) cd.h and cd.c
-	Implementation of cd command (shell builtin).
-
-12) ls.h and ls.c
-	Implementation of ls command with support for flags -l and -a.
-
-13) pinfo.h and pinfo.c
-	Implementation of pinfo command. Reads from /proc/[pid]/stat file.
-
-14) nightswatch.h and nightswatch.c
-	Implementaion of nightswatch command with 2 options: interrupt and newborn. Default time interval is 1 second.
-
-15) history.h and history.c
-	Implements displaying history, updating history, loading history at shell start, and writing history to the /home/[username]/.shell_history file.
-
-16) setenv.h and setenv.c
-	Implements adding and removing environment variables of the shell. Includes setenv, unsetenv and getenv.
-
-17) externalapi.h and externalapi.c
-	Implements running all external processes, including support for both background and foreground processes. Ex: cat, vim, grep etc. Uses the execvp command. Also checks the exit status of background processes.
-
-18) childhandler.h and childhandler.c
-	Implements the API for adding, updating and removing background child processes. Also handles sending shell to background during a foreground processes. 
-
-19) jobhandler.h and jobhandler.c
-	Implements functions related to job control: jobs, fg, bg, kjob and stopjob.
-
-20) helperfunctions.h and helperfunctions.c
-	Implements various helper fucntions used in other files, including converting a string to integer, counting the number of tokens in a string, and removing extra whitespaces from a string.
-
-21) rawterminal.h and rawterminal.c
-	Changes the mode of the terminal from canonical mode to raw mode, so that characters are input as soon as they are typed. This functionality is used to terminate nightswatch on pressing 'q' without having to press enter.
-
-22) makefile
-	This is the makefile to compile the entire shell (name of executable created: shell).
-
-23) SHELL_EXECUTABLE
-	A complete sample executable of the shell obtained by executing the makefile.
+This is an implementation of a Linux shell written in C.  
 
 
-SHELL DESIGN CHOICES
+## Running the shell
 
-1) The shell has been designed to replicate bash as far as possible.
+1. Clone this directory and `cd` into it.
+2. Run the command `make`.
+3. Run `./shell` to get a prompt of the form `username@system_name:path$`.
+4. You are now in the shell! 
+5. Exit the shell by running `exit` or `quit` or pressing `CTRL-D`.
 
-2) Multiple statements on the same line are delimited using & (for background processes) or ; (for foreground processes). Logical chaining of commands is done using && (AND) and || (OR). Syntax errors are handled. 
+## Shell features
 
-3) The ls command supports functionality only for directories. It displays directories in blue and executables in green. 
+### Built-in commands
 
-4) Like bash, commands starting with a space or tab are not stored in history. A single command repeated multiple times in succession is stored in history only once. Requesting more history than available prints the maximum amount of history available. By default 10 lines of history are printed. A maximum of 20 lines of history are stored. History of commands from multiple instances of the shell is handled. This can be easily changed to support history only from the last shell which exits (like bash).
+These are shell builtins.
 
-5) Piping and redirection is handled for both builtin and non-builtin processes.
+1. `pwd`
+    
+    - Displays the present working directory.  
+    - Implemented in [pwd.c](pwd.c)  
 
-6) Multiple I/O redirections in a single statement is handled like bash. If there are multiple output redirections, all files are created (if they do not exist) and truncated (if > is used) and the output is redirected into the last file. If there are multiple input redirections, the contents of the last file are redirected while other files are ignored. 
+2. `cd <directory>`
+    
+    - Switches to the specified directory.  
+    - Supports flags `cd, cd . , cd .. , cd ~, cd -`.  
+    - `cd -` switches to the previous working directory and prints its path.
+    - Implemented in [cd.c](cd.c)  
 
-7) Piping of multiple commands is supported. Piping of processes in the background is not supported.
+3. `ls [-l -a] [directory list]`
+    
+    - Lists all the files and directories in the specified directory/directories.  
+    - Supports flags `ls, ls . , ls .. , ls ~`.  
+    - Highlights directories in blue and executable files in green.  
+    - Implemented in [ls.c](ls.c)  
 
-8) Foreground processes can be terminated using ctrl+C and stopped using ctrl+Z. Stopped processes can be resumed at a later stage.
+4. `echo [message]`
+    
+    - Displays message verbatim.  
+    - Does not handle escape characters or double quotes.  
+    - Implemented in [echo.c](echo.c)  
 
-9) Only non-builtin commands can be sent into the background. A background process can be brought back into the foreground, or stopped/resumed while remaining in the background.
+5. `exit` and `quit` 
 
-10) The shell automatically kills all its child processes (if any) on exit (using the exit/quit command or ctrl+D).
+    - Exits the shell with exit code 0 (success). Kills child processes of the shell, if any.
+
+6. `history [value]`
+
+    - Displays shell history (last `value` commands). If `value` is unspecified, displays the last 10 commands.  
+    - Displays a maximum of 20 commands.  
+    - History stored in `.shell-history` which is stored in the `/home/username` directory.  
+    - Implemented in [history.c](history.c)  
+
+7. `setenv var [value]`, `unsetenv var` and `getenv var` 
+
+    - `setenv var [value]` creates an enviornment variable `var` if it doesn't exist and assigns it the provided value, else overwrites its existing value.
+    - `unsetenv var` destroys the environment variable `var`.  
+    - `getenv var` displays the value of the ebnironment variable `var`.  
+    - Implemented in [setenv.c](setenv.c)  
+    
+8.  `jobs`
+
+    - Prints a list of all currerntly running background processes in order of their creation times, along with their job number, process ID and state.  
+    - The state of the job may be on of the following: Running, Stopped or Killed.  
+    - Implemented in [jobhandler.c](jobhandler.c)  
+
+9. `kjob <job number> <signal number>` and `stopjob <job number>
+    
+    - `kjob <job number> <signal number>` takes the `job number` of a running job and sends the signal corresponding to `signal number` to that process.
+    - `stopjob <job number>` stops the running background job corresponding to `job number`.     
+    - Implemented in [jobhandler.c](jobhandler.c)  
+
+10. `fg <job number>`
+    
+    - Brings a running or a stopped background job corresponding to `job number` to the foreground, and changes its state to `Running`.  
+    - Implemented in [jobhandler.c](jobhandler.c)
+
+11. `bg <job number>`
+
+    - Changes the state of a stopped background job to running (in the background).  
+    - Implemented in [jobhandler.c](jobhandler.c)  
+
+12. `overkill`
+
+    - Kills all background process at once.  
+    - Implemented in [childhandler.c](childhandler.c)  
+
+### Additional Commands
+
+1. `pinfo [pid]`
+
+    - Prints details about the process specified by `pid` including its pid, status, memory, and executable path.  
+    - If `pid` is unspecified, details of the shell are printed.  
+    - Implemented in [pinfo.c](pinfo.c)  
+
+2. `nightswatch -n [seconds] [interrupt/newborn]`
+
+    - The `interrupt` option prints the number of times the CPU has been interrupted by the keyboard.  
+    - the `newborn` option prints the process ID of the most recently created process.  
+    - Prints every `n` seconds. If not specified, prints every second.  
+    - Exits when `q` is pressed (without enter).  
+    - Implemented in [nightswatch.c](nightswatch.c)
+
+### Foreground and Background Processes
+
+- Commands other than shell builtins are treated as external commands.
+- Only non-builtin commands can be sent to the background.
+- To run a process in the background, follow the command with a `&` symbol. Eg. `vim &`.
+- Multiple commands can be written in the same line separated by a `;` for foreground execution or `&` for background execution. Eg. `vim & ps; echo hello`   
+
+### Command Piping and Input/Output Redirection
+
+- Input/Output redirection can be done for both foreground and background processes using the symbols `<`, `>`, and `>>`.  
+- Multiple commands can be piped using the pipe operator `|`.  
+- Input/Output redirection can be done within command pipelines. Eg. `cat < in.txt | wc -l > out.txt`.  
+- Piping in the background is not supported.  
+
+### Signal Handling and EOF
+
+1. `CTRL-Z`
+
+    - Changes the state of a foreground process from Running to Stopped and pushes it into the background.
+
+2. `CTRL-C` and `CTRL-\`
+
+    - Send SIGINT and SIGQUIT signals respectively to the current foreground job of the shell, thereby terminating it.  
+    - If there is no foreground job, the signal has no effect.  
+    
+3. `CTRL-D`
+
+    - Sends an EOF marker thereby terminating the shell.  
+
+### Logical Chaining of Commands
+
+- Multiple commands can be chained using the logical operators `&&` (AND) and `||` (OR).  
+- These operators short-circuit, and execute their second operands only if needed to evaluate their truth value.    
+- `&&` executes the next command only if the previous command exited normally.  
+- `||` executes the next command only if the previous command exited abnormally.  
+
+### Exit codes
+- The shell receives exit codes of all its child processes.  
+- `:)` before the prompt indicates that the previous command exited normally.  
+- `:(` before the prompt indicates that the previous command exited abnormally.  
+
+## Coding style
+
+- Function declarations are present in `.h` files and definitions in the corresponding `.c` files.  
+- All included header files and macro definitions are present in `headers.h` and all global variables in `globalvars.h`.  
+- SHELL_EXECUTABLE contains a working executable of the shell, created using the same steps as described above.  
