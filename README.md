@@ -12,6 +12,7 @@ This is an implementation of a Linux shell written in C.
 3. Run `./shell` to get a prompt of the form `username@system_name:path$`.
 4. You are now in the shell! 
 5. Exit the shell by running `exit` or `quit` or pressing `CTRL-D`.
+6. The directory from which the shell is run will be the home directory for the shell.  
 
 ## Shell features
 
@@ -68,7 +69,7 @@ These are shell builtins. All other commands are treated as external commands.
     - The state of the job may be on of the following: Running, Stopped or Killed.  
     - Implemented in [jobhandler.c](jobhandler.c)  
 
-9. `kjob <job number> <signal number>` and `stopjob <job number>
+9. `kjob <job number> <signal number>` and `stopjob <job number>`
     
     - `kjob <job number> <signal number>` takes the `job number` of a running job and sends the signal corresponding to `signal number` to that process.
     - `stopjob <job number>` stops the running background job corresponding to `job number`.     
